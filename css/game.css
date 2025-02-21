@@ -23,16 +23,30 @@ html, body {
 
 .header {
 	position: absolute;
-	top: 8vh;
+	top: 4vh;
 	left: 0;
 	width: 100%;
 	text-align: center;
 	pointer-events: none;
+	display: flex;
+	/* justify-content: center; */
+	align-items: center;
+	margin-left: 5%;
+	margin-right: 5%;
+}
+
+.header-left{
+	width: 50%;
+	display: flex;
+}
+
+.score{
+	width: 50% !important;
 }
 
 .header h1 {
 	font-family: 'Playfair Display';
-	font-size: 4.5em;
+	font-size: 3.0em;
 	line-height: 1;
 	margin: 0;
 	letter-spacing: -0.025em;
@@ -40,10 +54,10 @@ html, body {
 }
 
 .header h1 span {
-	font-size: 0.2em;
+	font-size: 0.3em;
 	font-style: italic;
 	display: block;
-	margin: 0 0 -1.5em -7em;
+	margin: 0 0 -1.0em -6em;
 	letter-spacing: 0px;
 }
 
@@ -59,7 +73,7 @@ html, body {
 
 .score {
 	width: 100%;
-	margin: 2em 0 0;
+	/* margin: 2em 0 0; */
 	text-align: center;
 	white-space: nowrap;
 }
@@ -125,7 +139,7 @@ html, body {
 	bottom: 0;
 	left: 0;
 	margin: 2px;
-	background-color: #f25346;
+	background-color: #1ABC9C;
 	-webkit-animation-name: none;
 	animation-name: none;
 	-webkit-animation-duration: 150ms;
@@ -163,7 +177,7 @@ html, body {
 
 .message--instructions span {
 	display: block;
-	color: #d6483b;
+	color: #d63b3b;
 	white-space: nowrap;
 }
 

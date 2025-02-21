@@ -1,13 +1,13 @@
 //COLORS
 var Colors = {
-    red:0xf25346,
+    red: 0xff3b3b,
     white:0xd8d0d1,
     brown:0x59332e,
     brownDark:0x23190f,
     pink:0xF5986E,
     yellow:0xf4ce93,
     blue:0x68c3c0,
-
+    nuclear:0x32CD32,
 };
 
 ///////////////
@@ -562,10 +562,12 @@ Cloud.prototype.rotate = function(){
 Ennemy = function(){
   var geom = new THREE.TetrahedronGeometry(8,2);
   var mat = new THREE.MeshPhongMaterial({
-    color:Colors.red,
-    shininess:0,
-    specular:0xffffff,
-    shading:THREE.FlatShading
+    color: Colors.nuclear,
+    shininess: 150,            // Increase shininess for a glossy effect
+    specular: 0x88ff88,       // Adjust specular to a greenish highlight
+    emissive: Colors.nuclear,  // Add emissive glow
+    emissiveIntensity: 2,      // Make the glow stronger
+    shading: THREE.FlatShading
   });
   this.mesh = new THREE.Mesh(geom,mat);
   this.mesh.castShadow = true;
@@ -615,7 +617,7 @@ EnnemiesHolder.prototype.rotateEnnemies = function(){
     var diffPos = airplane.mesh.position.clone().sub(ennemy.mesh.position.clone());
     var d = diffPos.length();
     if (d<game.ennemyDistanceTolerance){
-      particlesHolder.spawnParticles(ennemy.mesh.position.clone(), 15, Colors.red, 3);
+      particlesHolder.spawnParticles(ennemy.mesh.position.clone(), 15, Colors.nuclear, 3);
 
       ennemiesPool.unshift(this.ennemiesInUse.splice(i,1)[0]);
       this.mesh.remove(ennemy.mesh);
@@ -686,75 +688,81 @@ ParticlesHolder.prototype.spawnParticles = function(pos, density, color, scale){
   }
 }
 
-Coin = function(){
-  var geom = new THREE.TetrahedronGeometry(5,0);
+Heart = function(){
+  var x = 0, y = 0;
+  var heartShape = new THREE.Shape();
+  heartShape.moveTo(x, y);
+  heartShape.bezierCurveTo(x - 5, y - 5, x - 10, y + 5, x, y + 10);
+  heartShape.bezierCurveTo(x + 10, y + 5, x + 5, y - 5, x, y);
+  
+  var extrudeSettings = { depth: 0.1, bevelEnabled: false }; // Reduced depth to near zero
+  var geom = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
   var mat = new THREE.MeshPhongMaterial({
-    color:0x009999,
-    shininess:0,
-    specular:0xffffff,
-
-    shading:THREE.FlatShading
+    color: 0xff0000, // Red color for heart
+    shininess: 50,
+    specular: 0xffffff,
+    shading: THREE.FlatShading
   });
-  this.mesh = new THREE.Mesh(geom,mat);
+  this.mesh = new THREE.Mesh(geom, mat);
   this.mesh.castShadow = true;
+  this.mesh.scale.set(1, 1, 0.05);
   this.angle = 0;
   this.dist = 0;
 }
 
-CoinsHolder = function (nCoins){
+
+HeartsHolder = function (nHearts){
   this.mesh = new THREE.Object3D();
-  this.coinsInUse = [];
-  this.coinsPool = [];
-  for (var i=0; i<nCoins; i++){
-    var coin = new Coin();
-    this.coinsPool.push(coin);
+  this.heartsInUse = [];
+  this.heartsPool = [];
+  for (var i = 0; i < nHearts; i++){
+    var heart = new Heart();
+    this.heartsPool.push(heart);
   }
 }
 
-CoinsHolder.prototype.spawnCoins = function(){
-
-  var nCoins = 1 + Math.floor(Math.random()*10);
-  var d = game.seaRadius + game.planeDefaultHeight + (-1 + Math.random() * 2) * (game.planeAmpHeight-20);
-  var amplitude = 10 + Math.round(Math.random()*10);
-  for (var i=0; i<nCoins; i++){
-    var coin;
-    if (this.coinsPool.length) {
-      coin = this.coinsPool.pop();
-    }else{
-      coin = new Coin();
+HeartsHolder.prototype.spawnHearts = function(){
+  var nHearts = 1 + Math.floor(Math.random() * 10);
+  var d = game.seaRadius + game.planeDefaultHeight + (-1 + Math.random() * 2) * (game.planeAmpHeight - 20);
+  var amplitude = 10 + Math.round(Math.random() * 10);
+  for (var i = 0; i < nHearts; i++){
+    var heart;
+    if (this.heartsPool.length) {
+      heart = this.heartsPool.pop();
+    } else {
+      heart = new Heart();
     }
-    this.mesh.add(coin.mesh);
-    this.coinsInUse.push(coin);
-    coin.angle = - (i*0.02);
-    coin.distance = d + Math.cos(i*.5)*amplitude;
-    coin.mesh.position.y = -game.seaRadius + Math.sin(coin.angle)*coin.distance;
-    coin.mesh.position.x = Math.cos(coin.angle)*coin.distance;
+    this.mesh.add(heart.mesh);
+    this.heartsInUse.push(heart);
+    heart.angle = -(i * 0.02);
+    heart.distance = d + Math.cos(i * .5) * amplitude;
+    heart.mesh.position.y = -game.seaRadius + Math.sin(heart.angle) * heart.distance;
+    heart.mesh.position.x = Math.cos(heart.angle) * heart.distance;
   }
 }
 
-CoinsHolder.prototype.rotateCoins = function(){
-  for (var i=0; i<this.coinsInUse.length; i++){
-    var coin = this.coinsInUse[i];
-    if (coin.exploding) continue;
-    coin.angle += game.speed*deltaTime*game.coinsSpeed;
-    if (coin.angle>Math.PI*2) coin.angle -= Math.PI*2;
-    coin.mesh.position.y = -game.seaRadius + Math.sin(coin.angle)*coin.distance;
-    coin.mesh.position.x = Math.cos(coin.angle)*coin.distance;
-    coin.mesh.rotation.z += Math.random()*.1;
-    coin.mesh.rotation.y += Math.random()*.1;
+HeartsHolder.prototype.rotateHearts = function(){
+  for (var i = 0; i < this.heartsInUse.length; i++){
+    var heart = this.heartsInUse[i];
+    if (heart.exploding) continue;
+    heart.angle += game.speed * deltaTime * game.coinsSpeed;
+    if (heart.angle > Math.PI * 2) heart.angle -= Math.PI * 2;
+    heart.mesh.position.y = -game.seaRadius + Math.sin(heart.angle) * heart.distance;
+    heart.mesh.position.x = Math.cos(heart.angle) * heart.distance;
+    heart.mesh.rotation.z += Math.random() * .1;
+    heart.mesh.rotation.y += Math.random() * .1;
 
-    //var globalCoinPosition =  coin.mesh.localToWorld(new THREE.Vector3());
-    var diffPos = airplane.mesh.position.clone().sub(coin.mesh.position.clone());
+    var diffPos = airplane.mesh.position.clone().sub(heart.mesh.position.clone());
     var d = diffPos.length();
-    if (d<game.coinDistanceTolerance){
-      this.coinsPool.unshift(this.coinsInUse.splice(i,1)[0]);
-      this.mesh.remove(coin.mesh);
-      particlesHolder.spawnParticles(coin.mesh.position.clone(), 5, 0x009999, .8);
+    if (d < game.coinDistanceTolerance){
+      this.heartsPool.unshift(this.heartsInUse.splice(i,1)[0]);
+      this.mesh.remove(heart.mesh);
+      particlesHolder.spawnParticles(heart.mesh.position.clone(), 5, 0xff0000, .8);
       addEnergy();
       i--;
-    }else if (coin.angle > Math.PI){
-      this.coinsPool.unshift(this.coinsInUse.splice(i,1)[0]);
-      this.mesh.remove(coin.mesh);
+    } else if (heart.angle > Math.PI){
+      this.heartsPool.unshift(this.heartsInUse.splice(i,1)[0]);
+      this.mesh.remove(heart.mesh);
       i--;
     }
   }
@@ -786,7 +794,7 @@ function createSky(){
 
 function createCoins(){
 
-  coinsHolder = new CoinsHolder(20);
+  coinsHolder = new HeartsHolder(20);
   scene.add(coinsHolder.mesh)
 }
 
@@ -821,7 +829,7 @@ function loop(){
     // Add energy coins every 100m;
     if (Math.floor(game.distance)%game.distanceForCoinsSpawn == 0 && Math.floor(game.distance) > game.coinLastSpawn){
       game.coinLastSpawn = Math.floor(game.distance);
-      coinsHolder.spawnCoins();
+      coinsHolder.spawnHearts();
     }
 
     if (Math.floor(game.distance)%game.distanceForSpeedUpdate == 0 && Math.floor(game.distance) > game.speedLastUpdate){
@@ -874,7 +882,7 @@ function loop(){
 
   ambientLight.intensity += (.5 - ambientLight.intensity)*deltaTime*0.005;
 
-  coinsHolder.rotateCoins();
+  coinsHolder.rotateHearts();
   ennemiesHolder.rotateEnnemies();
 
   sky.moveClouds();
@@ -898,7 +906,7 @@ function updateEnergy(){
   game.energy -= game.speed*deltaTime*game.ratioSpeedEnergy;
   game.energy = Math.max(0, game.energy);
   energyBar.style.right = (100-game.energy)+"%";
-  energyBar.style.backgroundColor = (game.energy<50)? "#f25346" : "#68c3c0";
+  energyBar.style.backgroundColor = (game.energy<50)? "#f25346" : "#1ABC9C";
 
   if (game.energy<30){
     energyBar.style.animationName = "blinking";
